@@ -790,7 +790,6 @@ const GlobeMap = ({
       </MapView>
 
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_48%,rgba(80,190,255,0.14),rgba(8,17,32,0)_28%),radial-gradient(circle_at_18%_16%,rgba(168,85,247,0.14),rgba(8,17,32,0)_24%),radial-gradient(circle_at_82%_14%,rgba(244,63,94,0.1),rgba(8,17,32,0)_22%),linear-gradient(180deg,rgba(2,6,23,0.04),rgba(2,6,23,0.3))]" />
-      <div className="pointer-events-none absolute inset-[10%] rounded-full border border-cyan-300/6 shadow-[0_0_120px_rgba(56,189,248,0.12),inset_0_0_90px_rgba(56,189,248,0.04)]" />
 
       {hoverInfo && hoverInfo.object && (
         <div

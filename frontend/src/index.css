@@ -41,10 +41,19 @@ html, body, #root {
 /* Mapbox specific styles */
 .mapboxgl-map {
   font-family: inherit;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  border-radius: 0;
 }
 
+.mapboxgl-canvas-container,
 .mapboxgl-canvas,
 .deckgl-overlay canvas {
+  border: none;
+  outline: none;
+  box-shadow: none;
+  border-radius: 0;
   transition: filter 400ms ease, opacity 400ms ease;
 }
 
