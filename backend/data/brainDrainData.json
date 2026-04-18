@@ -1,0 +1,152 @@
+[
+  {
+    "country": "Pakistan",
+    "countryCode": "PAK",
+    "skilledEmigrationRate": 12.4,
+    "topSectors": ["Medicine", "Engineering", "IT", "Academia"],
+    "annualSkilledLoss": 25000,
+    "topDestinationCountries": [
+      { "name": "United Kingdom", "percentage": 28 },
+      { "name": "United States", "percentage": 24 },
+      { "name": "Canada", "percentage": 18 },
+      { "name": "UAE", "percentage": 16 },
+      { "name": "Saudi Arabia", "percentage": 14 }
+    ],
+    "year": 2023
+  },
+  {
+    "country": "India",
+    "countryCode": "IND",
+    "skilledEmigrationRate": 4.3,
+    "topSectors": ["IT", "Medicine", "Engineering", "Research"],
+    "annualSkilledLoss": 180000,
+    "topDestinationCountries": [
+      { "name": "United States", "percentage": 38 },
+      { "name": "Canada", "percentage": 22 },
+      { "name": "United Kingdom", "percentage": 15 },
+      { "name": "Australia", "percentage": 14 },
+      { "name": "Germany", "percentage": 11 }
+    ],
+    "year": 2023
+  },
+  {
+    "country": "Nigeria",
+    "countryCode": "NGA",
+    "skilledEmigrationRate": 10.7,
+    "topSectors": ["Medicine", "Nursing", "Engineering", "Finance"],
+    "annualSkilledLoss": 15000,
+    "topDestinationCountries": [
+      { "name": "United Kingdom", "percentage": 35 },
+      { "name": "United States", "percentage": 30 },
+      { "name": "Canada", "percentage": 18 },
+      { "name": "Ghana", "percentage": 10 },
+      { "name": "South Africa", "percentage": 7 }
+    ],
+    "year": 2023
+  },
+  {
+    "country": "China",
+    "countryCode": "CHN",
+    "skilledEmigrationRate": 3.8,
+    "topSectors": ["Research", "Engineering", "IT", "Finance"],
+    "annualSkilledLoss": 150000,
+    "topDestinationCountries": [
+      { "name": "United States", "percentage": 40 },
+      { "name": "Canada", "percentage": 20 },
+      { "name": "Australia", "percentage": 18 },
+      { "name": "United Kingdom", "percentage": 12 },
+      { "name": "Japan", "percentage": 10 }
+    ],
+    "year": 2023
+  },
+  {
+    "country": "Brazil",
+    "countryCode": "BRA",
+    "skilledEmigrationRate": 2.6,
+    "topSectors": ["IT", "Medicine", "Research", "Engineering"],
+    "annualSkilledLoss": 35000,
+    "topDestinationCountries": [
+      { "name": "United States", "percentage": 35 },
+      { "name": "Portugal", "percentage": 25 },
+      { "name": "Canada", "percentage": 18 },
+      { "name": "Germany", "percentage": 12 },
+      { "name": "United Kingdom", "percentage": 10 }
+    ],
+    "year": 2023
+  },
+  {
+    "country": "Germany",
+    "countryCode": "DEU",
+    "skilledEmigrationRate": 5.1,
+    "topSectors": ["Engineering", "Research", "Medicine", "IT"],
+    "annualSkilledLoss": 60000,
+    "topDestinationCountries": [
+      { "name": "Switzerland", "percentage": 28 },
+      { "name": "United States", "percentage": 25 },
+      { "name": "Austria", "percentage": 20 },
+      { "name": "United Kingdom", "percentage": 15 },
+      { "name": "Canada", "percentage": 12 }
+    ],
+    "year": 2023
+  },
+  {
+    "country": "United Kingdom",
+    "countryCode": "GBR",
+    "skilledEmigrationRate": 6.8,
+    "topSectors": ["Finance", "IT", "Medicine", "Research"],
+    "annualSkilledLoss": 80000,
+    "topDestinationCountries": [
+      { "name": "Australia", "percentage": 30 },
+      { "name": "United States", "percentage": 28 },
+      { "name": "Canada", "percentage": 18 },
+      { "name": "UAE", "percentage": 14 },
+      { "name": "Singapore", "percentage": 10 }
+    ],
+    "year": 2023
+  },
+  {
+    "country": "United States",
+    "countryCode": "USA",
+    "skilledEmigrationRate": 0.6,
+    "topSectors": ["Tech", "Research", "Finance", "Academia"],
+    "annualSkilledLoss": 45000,
+    "topDestinationCountries": [
+      { "name": "Canada", "percentage": 30 },
+      { "name": "United Kingdom", "percentage": 25 },
+      { "name": "Germany", "percentage": 18 },
+      { "name": "Australia", "percentage": 15 },
+      { "name": "Singapore", "percentage": 12 }
+    ],
+    "year": 2023
+  },
+  {
+    "country": "Canada",
+    "countryCode": "CAN",
+    "skilledEmigrationRate": 3.2,
+    "topSectors": ["IT", "Medicine", "Engineering", "Finance"],
+    "annualSkilledLoss": 40000,
+    "topDestinationCountries": [
+      { "name": "United States", "percentage": 55 },
+      { "name": "United Kingdom", "percentage": 18 },
+      { "name": "Australia", "percentage": 12 },
+      { "name": "Germany", "percentage": 8 },
+      { "name": "Switzerland", "percentage": 7 }
+    ],
+    "year": 2023
+  },
+  {
+    "country": "Australia",
+    "countryCode": "AUS",
+    "skilledEmigrationRate": 4.5,
+    "topSectors": ["Medicine", "IT", "Research", "Mining Engineering"],
+    "annualSkilledLoss": 30000,
+    "topDestinationCountries": [
+      { "name": "United Kingdom", "percentage": 30 },
+      { "name": "United States", "percentage": 28 },
+      { "name": "Singapore", "percentage": 18 },
+      { "name": "Canada", "percentage": 14 },
+      { "name": "New Zealand", "percentage": 10 }
+    ],
+    "year": 2023
+  }
+]

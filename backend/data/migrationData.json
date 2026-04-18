@@ -1,0 +1,102 @@
+[
+  {
+    "country": "Pakistan",
+    "countryCode": "PAK",
+    "emigrationRate": 3.5,
+    "immigrationRate": 1.2,
+    "netMigration": -233379,
+    "topDestinations": ["Saudi Arabia", "UAE", "United Kingdom", "United States", "Canada"],
+    "topOrigins": ["Afghanistan", "Bangladesh", "Myanmar"],
+    "year": 2023
+  },
+  {
+    "country": "India",
+    "countryCode": "IND",
+    "emigrationRate": 1.8,
+    "immigrationRate": 0.4,
+    "netMigration": -532687,
+    "topDestinations": ["United States", "UAE", "Saudi Arabia", "Canada", "United Kingdom"],
+    "topOrigins": ["Bangladesh", "Nepal", "Sri Lanka"],
+    "year": 2023
+  },
+  {
+    "country": "United States",
+    "countryCode": "USA",
+    "emigrationRate": 0.4,
+    "immigrationRate": 4.8,
+    "netMigration": 954806,
+    "topDestinations": ["Mexico", "Canada", "United Kingdom", "Germany", "Australia"],
+    "topOrigins": ["Mexico", "India", "China", "Philippines", "El Salvador"],
+    "year": 2023
+  },
+  {
+    "country": "United Kingdom",
+    "countryCode": "GBR",
+    "emigrationRate": 2.1,
+    "immigrationRate": 5.6,
+    "netMigration": 313000,
+    "topDestinations": ["Australia", "United States", "Canada", "Spain", "France"],
+    "topOrigins": ["India", "Nigeria", "Pakistan", "Romania", "Poland"],
+    "year": 2023
+  },
+  {
+    "country": "Canada",
+    "countryCode": "CAN",
+    "emigrationRate": 1.3,
+    "immigrationRate": 6.2,
+    "netMigration": 405000,
+    "topDestinations": ["United States", "United Kingdom", "Australia", "France", "Hong Kong"],
+    "topOrigins": ["India", "Philippines", "China", "Syria", "Nigeria"],
+    "year": 2023
+  },
+  {
+    "country": "Germany",
+    "countryCode": "DEU",
+    "emigrationRate": 1.9,
+    "immigrationRate": 5.1,
+    "netMigration": 329000,
+    "topDestinations": ["Switzerland", "Austria", "United States", "United Kingdom", "Turkey"],
+    "topOrigins": ["Syria", "Romania", "Poland", "Turkey", "Afghanistan"],
+    "year": 2023
+  },
+  {
+    "country": "Nigeria",
+    "countryCode": "NGA",
+    "emigrationRate": 0.7,
+    "immigrationRate": 0.6,
+    "netMigration": -60000,
+    "topDestinations": ["United Kingdom", "United States", "Ghana", "Cameroon", "Canada"],
+    "topOrigins": ["Benin", "Ghana", "Mali", "Togo", "Niger"],
+    "year": 2023
+  },
+  {
+    "country": "China",
+    "countryCode": "CHN",
+    "emigrationRate": 0.7,
+    "immigrationRate": 0.1,
+    "netMigration": -310820,
+    "topDestinations": ["United States", "Canada", "Australia", "Japan", "United Kingdom"],
+    "topOrigins": ["South Korea", "Myanmar", "Vietnam"],
+    "year": 2023
+  },
+  {
+    "country": "Brazil",
+    "countryCode": "BRA",
+    "emigrationRate": 0.8,
+    "immigrationRate": 0.4,
+    "netMigration": -61000,
+    "topDestinations": ["United States", "Portugal", "Japan", "United Kingdom", "Spain"],
+    "topOrigins": ["Venezuela", "Haiti", "Bolivia", "Colombia", "Paraguay"],
+    "year": 2023
+  },
+  {
+    "country": "Australia",
+    "countryCode": "AUS",
+    "emigrationRate": 1.5,
+    "immigrationRate": 7.1,
+    "netMigration": 387000,
+    "topDestinations": ["United Kingdom", "United States", "New Zealand", "Canada", "Singapore"],
+    "topOrigins": ["India", "China", "United Kingdom", "Philippines", "Nepal"],
+    "year": 2023
+  }
+]
