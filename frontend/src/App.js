@@ -123,6 +123,7 @@ function App() {
         populationLoading={populationLoading}
         populationError={populationError}
         selectedCountry={selectedCountry}
+        onClose={() => setSelectedCountry(null)}
       />
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Users, TrendingUp, AlertTriangle, Globe } from 'lucide-react';
+import { Users, TrendingUp, AlertTriangle, Globe, X } from 'lucide-react';
 import { normalizeCountryName } from '../utils/countryData';
 import { buildCountryAnalytics } from '../utils/countryAnalytics';
 
@@ -10,8 +10,16 @@ const populationTrendData = [
 ];
 
 const panelShellClassName = 'premium-panel absolute z-20 flex min-h-0 flex-col overflow-hidden rounded-[28px] text-white transition-all duration-500';
+const desktopIntroPanelClassName = `${panelShellClassName} hidden sm:flex left-3 right-3 top-3 p-6 sm:left-4 sm:top-4 sm:right-auto sm:w-[22rem] lg:w-[24rem]`;
+const activePanelClassName = `${panelShellClassName} left-3 right-3 bottom-3 max-h-[62vh] p-4 sm:left-4 sm:top-4 sm:bottom-4 sm:right-auto sm:max-h-none sm:w-[22rem] sm:p-5 lg:w-[24rem]`;
 
-const LeftPanel = ({ populationData = [], populationLoading, populationError, selectedCountry }) => {
+const LeftPanel = ({
+  populationData = [],
+  populationLoading,
+  populationError,
+  selectedCountry,
+  onClose = () => {}
+}) => {
   const populationMap = useMemo(() => {
     const map = {};
     populationData.forEach((item) => {
@@ -39,7 +47,7 @@ const LeftPanel = ({ populationData = [], populationLoading, populationError, se
 
   if (!selectedCountry) {
     return (
-      <div className={`${panelShellClassName} left-3 right-3 top-3 p-6 sm:left-4 sm:top-4 sm:right-auto sm:w-[22rem] lg:w-[24rem]`}>
+      <div className={desktopIntroPanelClassName}>
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/45 to-transparent" />
         <div className="flex min-h-[13rem] flex-col items-center justify-center text-center sm:min-h-[calc(100vh-6rem)]">
           <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-cyan-300/20 bg-cyan-400/12 shadow-[0_0_35px_rgba(56,189,248,0.22)]">
@@ -58,8 +66,17 @@ const LeftPanel = ({ populationData = [], populationLoading, populationError, se
 
   if (populationLoading) {
     return (
-      <div className={`${panelShellClassName} left-3 right-3 top-3 p-6 sm:left-4 sm:top-4 sm:right-auto sm:w-[22rem] lg:w-[24rem]`}>
-        <div className="flex min-h-[13rem] flex-col items-center justify-center sm:min-h-[calc(100vh-6rem)]">
+      <div className={activePanelClassName}>
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/45 to-transparent" />
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close analytics panel"
+          className="absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-200 transition hover:bg-white/10 hover:text-white"
+        >
+          <X size={18} />
+        </button>
+        <div className="flex min-h-[13rem] flex-1 flex-col items-center justify-center sm:min-h-[calc(100vh-6rem)]">
           <div className="mb-4 h-11 w-11 rounded-full border-4 border-cyan-400/20 border-t-cyan-300 animate-spin" />
           <p className="text-sm font-medium text-slate-300/80 animate-pulse">Loading population for {selectedCountry}...</p>
         </div>
@@ -76,10 +93,18 @@ const LeftPanel = ({ populationData = [], populationLoading, populationError, se
     : [];
 
   return (
-    <div className={`${panelShellClassName} left-3 right-3 top-3 bottom-3 p-4 sm:left-4 sm:top-4 sm:bottom-4 sm:right-auto sm:w-[22rem] sm:p-5 lg:w-[24rem]`}>
+    <div className={activePanelClassName}>
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/45 to-transparent" />
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Close analytics panel"
+        className="absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-200 transition hover:bg-white/10 hover:text-white"
+      >
+        <X size={18} />
+      </button>
       <div className="custom-scrollbar relative flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overflow-x-hidden pr-1">
-        <div className="rounded-3xl border border-white/8 bg-[linear-gradient(135deg,rgba(34,211,238,0.16),rgba(168,85,247,0.08),rgba(10,15,28,0.26))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+        <div className="rounded-3xl border border-white/8 bg-[linear-gradient(135deg,rgba(34,211,238,0.16),rgba(168,85,247,0.08),rgba(10,15,28,0.26))] p-4 pr-14 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div className="text-[11px] font-semibold uppercase tracking-[0.34em] text-cyan-200/65">
               Country Analytics
