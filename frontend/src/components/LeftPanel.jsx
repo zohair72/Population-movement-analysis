@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Users, TrendingUp, AlertTriangle, Globe, X } from 'lucide-react';
 import { normalizeCountryName } from '../utils/countryData';
@@ -20,6 +20,24 @@ const LeftPanel = ({
   selectedCountry,
   onClose = () => {}
 }) => {
+  const [isMobileViewport, setIsMobileViewport] = useState(() => (
+    typeof window !== 'undefined' ? window.innerWidth < 640 : false
+  ));
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const handleResize = () => {
+      setIsMobileViewport(window.innerWidth < 640);
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const populationMap = useMemo(() => {
     const map = {};
     populationData.forEach((item) => {
@@ -169,32 +187,53 @@ const LeftPanel = ({
           <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300/80">
             Historical Growth
           </div>
-          <div className="h-[12rem]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={populationTrendData} margin={{ top: 8, right: 0, left: -22, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="popColor" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.7} />
-                    <stop offset="55%" stopColor="#8b5cf6" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#38bdf8" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="year" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
-                <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'rgba(8,15,31,0.92)',
-                    border: '1px solid rgba(148,163,184,0.16)',
-                    borderRadius: '16px',
-                    fontSize: '12px',
-                    backdropFilter: 'blur(14px)',
-                    color: '#e2e8f0'
-                  }}
-                />
-                <Area type="monotone" dataKey="val" stroke="#67e8f9" strokeWidth={2.2} fillOpacity={1} fill="url(#popColor)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          {isMobileViewport ? (
+            <div className="space-y-3 rounded-2xl border border-white/6 bg-black/10 p-3">
+              <div className="flex items-end justify-between">
+                <div>
+                  <div className="text-xs uppercase tracking-[0.18em] text-slate-400">2019</div>
+                  <div className="text-lg font-bold text-slate-100">{populationTrendData[0].val}M</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs uppercase tracking-[0.18em] text-slate-400">2024</div>
+                  <div className="text-lg font-bold text-cyan-200">{populationTrendData[populationTrendData.length - 1].val}M</div>
+                </div>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-white/8">
+                <div className="h-full w-full rounded-full bg-gradient-to-r from-cyan-400 via-violet-400 to-fuchsia-400 opacity-90" />
+              </div>
+              <p className="text-xs leading-5 text-slate-400">
+                Compact mobile summary is shown here for stability. The full interactive history chart is available on larger screens.
+              </p>
+            </div>
+          ) : (
+            <div className="h-[12rem]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={populationTrendData} margin={{ top: 8, right: 0, left: -22, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="popColor" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.7} />
+                      <stop offset="55%" stopColor="#8b5cf6" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#38bdf8" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="year" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'rgba(8,15,31,0.92)',
+                      border: '1px solid rgba(148,163,184,0.16)',
+                      borderRadius: '16px',
+                      fontSize: '12px',
+                      backdropFilter: 'blur(14px)',
+                      color: '#e2e8f0'
+                    }}
+                  />
+                  <Area type="monotone" dataKey="val" stroke="#67e8f9" strokeWidth={2.2} fillOpacity={1} fill="url(#popColor)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
 
         <div className="rounded-2xl border border-white/8 bg-white/5 p-3">
@@ -224,15 +263,6 @@ const LeftPanel = ({
         </div>
       </div>
 
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(103, 232, 249, 0.16);
-          border-radius: 9999px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(103, 232, 249, 0.26); }
-      `}</style>
     </div>
   );
 };

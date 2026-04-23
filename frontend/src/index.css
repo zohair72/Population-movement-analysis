@@ -77,6 +77,23 @@ html, body, #root {
   pointer-events: none;
 }
 
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(103, 232, 249, 0.16);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(103, 232, 249, 0.26);
+}
+
 @keyframes starTwinkle {
   0%, 100% { opacity: 0.18; transform: scale(0.92); }
   50% { opacity: 0.7; transform: scale(1.18); }
