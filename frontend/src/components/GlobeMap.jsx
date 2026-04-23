@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import MapView, { useControl } from 'react-map-gl/mapbox';
-import mapboxgl from 'mapbox-gl';
+import MapView, { Layer, Source, useControl } from 'react-map-gl/mapbox';
 import { MapboxOverlay } from '@deck.gl/mapbox';
 import { GeoJsonLayer } from '@deck.gl/layers';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -15,6 +14,52 @@ const INITIAL_VIEW_STATE = {
   zoom: 1.5,
   pitch: 0,
   bearing: 0
+};
+
+const COUNTRY_LABEL_HALO_LAYER = {
+  id: 'country-label-halo',
+  type: 'symbol',
+  minzoom: 1.35,
+  layout: {
+    'text-field': ['get', 'name'],
+    'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Regular'],
+    'text-size': ['interpolate', ['linear'], ['zoom'], 1.35, 8, 2, 10, 3, 11.5, 4.5, 13],
+    'text-letter-spacing': 0.12,
+    'text-max-width': 7.5,
+    'text-allow-overlap': false,
+    'text-ignore-placement': false
+  },
+  paint: {
+    'text-color': 'rgba(0, 0, 0, 0)',
+    'text-halo-color': 'rgba(2, 6, 23, 0.94)',
+    'text-halo-width': 1.4,
+    'text-opacity': ['interpolate', ['linear'], ['zoom'], 1.35, 0, 1.7, 0.55, 3.5, 0.9]
+  }
+};
+
+const COUNTRY_LABEL_TEXT_LAYER = {
+  id: 'country-label-text',
+  type: 'symbol',
+  minzoom: 1.35,
+  layout: {
+    'text-field': ['get', 'name'],
+    'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Regular'],
+    'text-size': ['interpolate', ['linear'], ['zoom'], 1.35, 8, 2, 10, 3, 11.5, 4.5, 13],
+    'text-letter-spacing': 0.12,
+    'text-max-width': 7.5,
+    'text-allow-overlap': false,
+    'text-ignore-placement': false
+  },
+  paint: {
+    'text-color': [
+      'match',
+      ['get', 'tone'],
+      'selected', '#ffe4e6',
+      'hovered', '#fbcfe8',
+      '#dbeafe'
+    ],
+    'text-opacity': ['interpolate', ['linear'], ['zoom'], 1.35, 0, 1.7, 0.7, 3.5, 0.96]
+  }
 };
 
 const flyEasing = (t) => 1 - Math.pow(1 - t, 3.2);
@@ -207,13 +252,10 @@ const GlobeMap = ({
   onCountrySelect = () => {}
 }) => {
   const mapRef = useRef();
-  const barMarkersRef = useRef([]);
-  const markerStyleFrameRef = useRef(null);
   const lastAnimatedCountryRef = useRef(null);
   const introRotationActiveRef = useRef(true);
 
   const [hoverInfo, setHoverInfo] = useState(null);
-  const [barGrowth, setBarGrowth] = useState(0);
 
   const popMap = useMemo(() => {
     const map = {};
@@ -247,6 +289,7 @@ const GlobeMap = ({
     if (!selectedCountry) {
       return null;
     }
+
     return countryFeatureMap.get(selectedCountry.toLowerCase()) || null;
   }, [countryFeatureMap, selectedCountry]);
 
@@ -256,27 +299,8 @@ const GlobeMap = ({
       : { type: 'FeatureCollection', features: [] }
   ), [selectedFeature]);
 
-  useEffect(() => {
-    let animationFrameId;
-    const start = performance.now();
-    const duration = 1200;
-
-    const animate = (timestamp) => {
-      const progress = Math.min((timestamp - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setBarGrowth(eased);
-
-      if (progress < 1) {
-        animationFrameId = window.requestAnimationFrame(animate);
-      }
-    };
-
-    animationFrameId = window.requestAnimationFrame(animate);
-    return () => window.cancelAnimationFrame(animationFrameId);
-  }, []);
-
   const hoverFeatureSource = useMemo(() => (
-    hoverInfo?.object?.feature || hoverInfo?.object?.properties?.sourceFeature || hoverInfo?.object || null
+    hoverInfo?.object?.feature || hoverInfo?.object || null
   ), [hoverInfo]);
 
   const hoveredFeature = useMemo(() => {
@@ -304,15 +328,15 @@ const GlobeMap = ({
 
   const getSmoothColor = useCallback((population) => {
     if (!population) {
-      return [74, 93, 128, 92];
+      return [46, 64, 95, 112];
     }
 
     const maxPop = 100_000_000;
     const t = Math.min(population / maxPop, 1.0);
     const stops = [
-      { stop: 0.0, color: [30, 64, 175] },
-      { stop: 0.5, color: [168, 85, 247] },
-      { stop: 1.0, color: [244, 63, 94] }
+      { stop: 0.0, color: [34, 97, 193] },
+      { stop: 0.5, color: [124, 92, 255] },
+      { stop: 1.0, color: [244, 81, 122] }
     ];
 
     let left = stops[0];
@@ -327,77 +351,49 @@ const GlobeMap = ({
     const g = Math.round(left.color[1] + (right.color[1] - left.color[1]) * localT);
     const b = Math.round(left.color[2] + (right.color[2] - left.color[2]) * localT);
 
-    return [r, g, b, 156];
+    return [r, g, b, 118];
   }, []);
 
-  const barData = useMemo(() => {
+  const countryLabelCollection = useMemo(() => {
     if (!Array.isArray(geoJsonData?.features)) {
-      return [];
+      return { type: 'FeatureCollection', features: [] };
     }
 
-    return geoJsonData.features
-      .map((feature) => {
-        const countryName = feature?.properties?.ADMIN || feature?.properties?.name;
-        if (!countryName) {
-          return null;
-        }
-
-        const normalizedName = normalizeCountryName(countryName).toLowerCase();
-        const populationRecord = popMap[normalizedName];
-        const anchor = getRepresentativePoint(feature);
-
-        if (!populationRecord?.population || !anchor) {
-          return null;
-        }
-
-        return {
-          countryName,
-          normalizedName,
-          population: populationRecord.population,
-          year: populationRecord.year,
-          anchor,
-          feature
-        };
-      })
-      .filter(Boolean);
-  }, [geoJsonData, popMap]);
-
-  const maxPopulation = useMemo(() => (
-    barData.reduce((maxValue, item) => Math.max(maxValue, item.population), 1)
-  ), [barData]);
-
-  const getBarHeight = useCallback((population) => {
-    const normalizedPopulation = Math.min(population / maxPopulation, 1);
-    const shapedPopulation = Math.pow(normalizedPopulation, 0.42);
-    const minHeight = 150000;
-    const maxHeight = 1650000;
-    return (minHeight + shapedPopulation * (maxHeight - minHeight)) * barGrowth;
-  }, [barGrowth, maxPopulation]);
-
-  const getBarVisualMetrics = useCallback((population, isSelected, zoom) => {
-    const normalizedPopulation = Math.min(population / maxPopulation, 1);
-    const prominence = Math.pow(normalizedPopulation, 0.36);
-    const zoomFactor = Math.min(Math.max(0.84 + (zoom - 1.35) * 0.19, 0.78), 1.68);
-    const selectedBoost = isSelected ? 1.16 : 1;
-
     return {
-      heightPx: (24 + prominence * 116) * zoomFactor,
-      widthPx: (9 + prominence * 14) * selectedBoost,
-      glowWidth: (26 + prominence * 24) * (isSelected ? 1.16 : 1),
-      floatOffset: -2 - prominence * 5,
-      glowOpacity: isSelected ? 0.52 : 0.28,
-      coreOpacity: isSelected ? 0.97 : 0.9
-    };
-  }, [maxPopulation]);
+      type: 'FeatureCollection',
+      features: geoJsonData.features
+        .map((feature) => {
+          const name = feature?.properties?.ADMIN || feature?.properties?.name;
+          const anchor = getRepresentativePoint(feature);
 
-  const resolvedBarData = useMemo(() => (
-    barData.map((item) => {
-      return {
-        ...item,
-        barHeight: getBarHeight(item.population)
-      };
-    })
-  ), [barData, getBarHeight]);
+          if (!name || !anchor) {
+            return null;
+          }
+
+          const normalizedName = normalizeCountryName(name).toLowerCase();
+          const tone = selectedCountry && normalizedName === normalizeCountryName(selectedCountry).toLowerCase()
+            ? 'selected'
+            : hoveredFeature && normalizedName === normalizeCountryName(
+              hoveredFeature.properties.ADMIN || hoveredFeature.properties.name || ''
+            ).toLowerCase()
+              ? 'hovered'
+              : 'default';
+
+          return {
+            type: 'Feature',
+            properties: {
+              name,
+              tone
+            },
+            geometry: {
+              type: 'Point',
+              coordinates: anchor
+            }
+          };
+        })
+        .filter(Boolean)
+    };
+  }, [geoJsonData, hoveredFeature, selectedCountry]);
 
   useEffect(() => {
     if (!selectedCountry || !selectedFeature || !mapRef.current) {
@@ -418,167 +414,13 @@ const GlobeMap = ({
     introRotationActiveRef.current = false;
     map.flyTo({
       center,
-      zoom: 3.65,
-      duration: 2000,
+      zoom: 3.45,
+      duration: 1900,
       essential: true,
-      curve: 1.45,
+      curve: 1.35,
       easing: flyEasing
     });
   }, [selectedCountry, selectedFeature]);
-
-  useEffect(() => {
-    if (!mapRef.current) {
-      return undefined;
-    }
-
-    const map = mapRef.current.getMap();
-
-    barMarkersRef.current.forEach(({ marker }) => marker.remove());
-    barMarkersRef.current = [];
-
-    if (resolvedBarData.length === 0) {
-      return undefined;
-    }
-
-    const markerEntries = resolvedBarData.map((item) => {
-      const element = document.createElement('button');
-      element.type = 'button';
-      element.className = 'population-bar-marker';
-      element.setAttribute('aria-label', `${item.countryName} population bar`);
-
-      const glow = document.createElement('span');
-      glow.className = 'population-bar-marker__glow';
-
-      const shaft = document.createElement('span');
-      shaft.className = 'population-bar-marker__shaft';
-
-      const cap = document.createElement('span');
-      cap.className = 'population-bar-marker__cap';
-
-      element.append(glow, shaft, cap);
-
-      const markerHoverObject = {
-        countryName: item.countryName,
-        population: item.population,
-        year: item.year,
-        feature: item.feature
-      };
-
-      const handleHover = (event) => {
-        setHoverInfo({
-          x: event.clientX,
-          y: event.clientY,
-          object: markerHoverObject
-        });
-      };
-
-      const handleLeave = () => {
-        setHoverInfo((current) => (
-          current?.object?.countryName === item.countryName ? null : current
-        ));
-      };
-
-      const handleClick = () => {
-        introRotationActiveRef.current = false;
-        onCountrySelect(item.countryName);
-      };
-
-      element.addEventListener('mouseenter', handleHover);
-      element.addEventListener('mousemove', handleHover);
-      element.addEventListener('mouseleave', handleLeave);
-      element.addEventListener('click', handleClick);
-
-      const marker = new mapboxgl.Marker({
-        element,
-        anchor: 'bottom',
-        rotationAlignment: 'horizon',
-        pitchAlignment: 'auto',
-        occludedOpacity: 0.02
-      })
-        .setLngLat(item.anchor)
-        .addTo(map);
-
-      return {
-        marker,
-        element,
-        glow,
-        shaft,
-        cap,
-        item,
-        handleHover,
-        handleLeave,
-        handleClick
-      };
-    });
-
-    const applyMarkerStyles = () => {
-      const zoom = map.getZoom();
-
-      markerEntries.forEach((entry) => {
-        const { element, glow, shaft, cap, item } = entry;
-        const isSelected = selectedCountry
-          && item.normalizedName === normalizeCountryName(selectedCountry).toLowerCase();
-        const metrics = getBarVisualMetrics(item.population, Boolean(isSelected), zoom);
-        const [r, g, b] = isSelected ? [255, 92, 112] : getSmoothColor(item.population);
-        const edgeTint = [Math.min(r + 54, 255), Math.min(g + 54, 255), Math.min(b + 54, 255)];
-        const shadowTint = isSelected ? '255,92,112' : `${r}, ${g}, ${b}`;
-        const rgbaCore = `rgba(${r}, ${g}, ${b}, ${metrics.coreOpacity})`;
-        const rgbaGlow = `rgba(${r}, ${g}, ${b}, ${metrics.glowOpacity})`;
-        const rgbaCap = `rgba(${edgeTint[0]}, ${edgeTint[1]}, ${edgeTint[2]}, 0.98)`;
-        const rgbaEdge = `rgba(${edgeTint[0]}, ${edgeTint[1]}, ${edgeTint[2]}, 0.54)`;
-        const rgbaHighlight = `rgba(255, 255, 255, ${isSelected ? 0.52 : 0.34})`;
-
-        element.classList.toggle('population-bar-marker--selected', Boolean(isSelected));
-        element.style.setProperty('--bar-height', `${metrics.heightPx.toFixed(2)}px`);
-        element.style.setProperty('--bar-width', `${metrics.widthPx.toFixed(2)}px`);
-        element.style.setProperty('--bar-glow-width', `${metrics.glowWidth.toFixed(2)}px`);
-        element.style.setProperty('--bar-color', rgbaCore);
-        element.style.setProperty('--bar-glow', rgbaGlow);
-        element.style.setProperty('--bar-cap', rgbaCap);
-        element.style.setProperty('--bar-edge', rgbaEdge);
-        element.style.setProperty('--bar-highlight', rgbaHighlight);
-        element.style.setProperty('--bar-shadow', isSelected ? '0 0 24px rgba(255,92,112,0.42)' : `0 0 18px rgba(${shadowTint}, 0.24)`);
-        element.style.setProperty('--bar-float', `${metrics.floatOffset.toFixed(2)}px`);
-
-        shaft.style.height = `${metrics.heightPx.toFixed(2)}px`;
-        glow.style.height = `${Math.max(metrics.heightPx - 6, 20).toFixed(2)}px`;
-        cap.style.width = `${Math.max(metrics.widthPx + 5.5, 12).toFixed(2)}px`;
-      });
-    };
-
-    const scheduleMarkerStyleSync = () => {
-      if (markerStyleFrameRef.current) {
-        window.cancelAnimationFrame(markerStyleFrameRef.current);
-      }
-
-      markerStyleFrameRef.current = window.requestAnimationFrame(() => {
-        applyMarkerStyles();
-      });
-    };
-
-    scheduleMarkerStyleSync();
-    map.on('zoom', scheduleMarkerStyleSync);
-    map.on('resize', scheduleMarkerStyleSync);
-
-    barMarkersRef.current = markerEntries;
-
-    return () => {
-      map.off('zoom', scheduleMarkerStyleSync);
-      map.off('resize', scheduleMarkerStyleSync);
-      if (markerStyleFrameRef.current) {
-        window.cancelAnimationFrame(markerStyleFrameRef.current);
-        markerStyleFrameRef.current = null;
-      }
-      markerEntries.forEach(({ marker, element, handleHover, handleLeave, handleClick }) => {
-        element.removeEventListener('mouseenter', handleHover);
-        element.removeEventListener('mousemove', handleHover);
-        element.removeEventListener('mouseleave', handleLeave);
-        element.removeEventListener('click', handleClick);
-        marker.remove();
-      });
-      barMarkersRef.current = [];
-    };
-  }, [getBarVisualMetrics, getSmoothColor, maxPopulation, onCountrySelect, resolvedBarData, selectedCountry]);
 
   useEffect(() => {
     let animationId;
@@ -596,7 +438,7 @@ const GlobeMap = ({
           !map.isMoving()
         ) {
           const center = map.getCenter();
-          center.lng += 0.045;
+          center.lng += 0.04;
           map.easeTo({ center, duration: 0, animate: false });
         }
       }
@@ -628,20 +470,20 @@ const GlobeMap = ({
     getLineColor: (feature) => {
       const name = normalizeCountryName(feature.properties.ADMIN || feature.properties.name || '').toLowerCase();
       if (selectedCountry && name === normalizeCountryName(selectedCountry).toLowerCase()) {
-        return [255, 110, 110, 230];
+        return [255, 122, 134, 235];
       }
       if (hoveredFeature && name === normalizeCountryName(hoveredFeature.properties.ADMIN || hoveredFeature.properties.name || '').toLowerCase()) {
-        return [255, 120, 195, 220];
+        return [255, 148, 220, 225];
       }
-      return [196, 224, 255, 70];
+      return [173, 210, 255, 88];
     },
     getLineWidth: (feature) => {
       const name = normalizeCountryName(feature.properties.ADMIN || feature.properties.name || '').toLowerCase();
       if (selectedCountry && name === normalizeCountryName(selectedCountry).toLowerCase()) {
-        return 2.4;
+        return 2.2;
       }
       if (hoveredFeature && name === normalizeCountryName(hoveredFeature.properties.ADMIN || hoveredFeature.properties.name || '').toLowerCase()) {
-        return 1.8;
+        return 1.75;
       }
       return 1;
     },
@@ -656,13 +498,13 @@ const GlobeMap = ({
         return [0, 0, 0, 0];
       }
 
-      const baseColor = getSmoothColor(popMap[geoName]?.population);
-      return baseColor;
+      const [r, g, b] = getSmoothColor(popMap[geoName]?.population);
+      return [Math.round(r * 0.82), Math.round(g * 0.86), Math.round(b * 0.94), 112];
     },
     transitions: {
-      getFillColor: 350,
-      getLineColor: 300,
-      getLineWidth: 250
+      getFillColor: 320,
+      getLineColor: 260,
+      getLineWidth: 220
     },
     onHover: (info) => {
       setHoverInfo(info);
@@ -689,7 +531,7 @@ const GlobeMap = ({
     filled: true,
     stroked: false,
     pickable: false,
-    getFillColor: [255, 92, 182, 168],
+    getFillColor: [255, 102, 194, 88],
     parameters: {
       depthTest: false
     },
@@ -704,7 +546,7 @@ const GlobeMap = ({
     filled: true,
     stroked: false,
     pickable: false,
-    getFillColor: [255, 76, 76, 182],
+    getFillColor: [255, 88, 102, 96],
     parameters: {
       depthTest: false
     },
@@ -723,7 +565,7 @@ const GlobeMap = ({
     lineWidthMinPixels: 5,
     lineJointRounded: true,
     lineCapRounded: true,
-    getLineColor: [255, 110, 110, 145],
+    getLineColor: [255, 110, 110, 140],
     getLineWidth: 5,
     parameters: {
       depthTest: false
@@ -741,11 +583,11 @@ const GlobeMap = ({
     stroked: true,
     pickable: false,
     lineWidthUnits: 'pixels',
-    lineWidthMinPixels: 2.4,
+    lineWidthMinPixels: 2.3,
     lineJointRounded: true,
     lineCapRounded: true,
-    getLineColor: [255, 160, 160, 230],
-    getLineWidth: 2.4,
+    getLineColor: [255, 182, 188, 230],
+    getLineWidth: 2.3,
     parameters: {
       depthTest: false
     },
@@ -774,22 +616,28 @@ const GlobeMap = ({
         ref={mapRef}
         initialViewState={INITIAL_VIEW_STATE}
         mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
-        mapStyle="mapbox://styles/mapbox/satellite-v9"
+        mapStyle="mapbox://styles/mapbox/dark-v11"
         projection="globe"
         antialias
         fog={{
-          range: [0.42, 10.8],
-          color: '#304b7a',
-          'high-color': '#10224d',
-          'space-color': '#040916',
-          'horizon-blend': 0.16,
-          'star-intensity': 0.36
+          range: [0.5, 10.5],
+          color: '#2c4b74',
+          'high-color': '#0d1d3d',
+          'space-color': '#030814',
+          'horizon-blend': 0.18,
+          'star-intensity': 0.42
         }}
       >
         <DeckGLOverlay layers={geoLayers} />
+
+        <Source id="country-labels" type="geojson" data={countryLabelCollection}>
+          <Layer {...COUNTRY_LABEL_HALO_LAYER} />
+          <Layer {...COUNTRY_LABEL_TEXT_LAYER} />
+        </Source>
       </MapView>
 
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_48%,rgba(80,190,255,0.14),rgba(8,17,32,0)_28%),radial-gradient(circle_at_18%_16%,rgba(168,85,247,0.14),rgba(8,17,32,0)_24%),radial-gradient(circle_at_82%_14%,rgba(244,63,94,0.1),rgba(8,17,32,0)_22%),linear-gradient(180deg,rgba(2,6,23,0.04),rgba(2,6,23,0.3))]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_48%,rgba(98,194,255,0.14),rgba(8,17,32,0)_32%),radial-gradient(circle_at_16%_14%,rgba(168,85,247,0.12),rgba(8,17,32,0)_24%),radial-gradient(circle_at_82%_12%,rgba(244,63,94,0.08),rgba(8,17,32,0)_22%),linear-gradient(180deg,rgba(3,7,18,0.06),rgba(3,7,18,0.3))]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_52%,rgba(255,255,255,0.06),rgba(255,255,255,0)_22%),radial-gradient(circle_at_50%_68%,rgba(2,6,23,0.32),rgba(2,6,23,0)_36%)] mix-blend-screen" />
 
       {hoverInfo && hoverInfo.object && (
         <div
@@ -797,16 +645,8 @@ const GlobeMap = ({
           style={{ left: hoverInfo.x, top: hoverInfo.y }}
         >
           {(() => {
-            const rawName = hoverInfo.object.countryName
-              || hoverInfo.object.properties?.countryName
-              || hoverInfo.object.properties?.ADMIN
-              || hoverInfo.object.properties?.name
-              || 'Unknown';
-            const backendData = hoverInfo.object.population
-              ? { population: hoverInfo.object.population, year: hoverInfo.object.year }
-              : hoverInfo.object.properties?.population
-                ? { population: hoverInfo.object.properties.population, year: hoverInfo.object.properties.year }
-              : popMap[normalizeCountryName(rawName).toLowerCase()];
+            const rawName = hoverInfo.object.properties?.ADMIN || hoverInfo.object.properties?.name || 'Unknown';
+            const backendData = popMap[normalizeCountryName(rawName).toLowerCase()];
 
             return (
               <div className="flex min-w-[170px] flex-col gap-1">
@@ -823,7 +663,7 @@ const GlobeMap = ({
                     </div>
                   </>
                 ) : (
-                  <div className="mt-1 border-t border-white/8 pt-2 text-xs italic text-rose-200/80">
+                  <div className="mt-1 border-t border-white/8 pt-2 text-xs italic text-slate-300/80">
                     No population data available.
                   </div>
                 )}
