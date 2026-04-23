@@ -9,6 +9,52 @@ import { fetchWorldBankPopulation, normalizePopulationPayload } from './utils/po
 
 const GEOJSON_URL = 'https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson';
 
+class AnalyticsErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error) {
+    console.error('Analytics panel render error:', error);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.resetKey !== this.props.resetKey && this.state.hasError) {
+      this.setState({ hasError: false });
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="premium-panel absolute bottom-3 left-3 right-3 z-20 rounded-[28px] p-4 text-white sm:bottom-4 sm:left-4 sm:right-auto sm:top-4 sm:w-[22rem] sm:p-5 lg:w-[24rem]">
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-rose-300/40 to-transparent" />
+          <div className="rounded-3xl border border-white/8 bg-[linear-gradient(135deg,rgba(251,113,133,0.16),rgba(168,85,247,0.08),rgba(10,15,28,0.26))] p-4">
+            <h2 className="text-xl font-bold text-rose-100">Analytics temporarily unavailable</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-300/80">
+              The selected country loaded, but this device hit a panel rendering issue. Try closing and reopening the panel.
+            </p>
+            <button
+              type="button"
+              onClick={this.props.onClose}
+              className="mt-4 inline-flex rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 transition hover:bg-white/10"
+            >
+              Close analytics
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 function App() {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [geoJsonData, setGeoJsonData] = useState(null);
@@ -118,13 +164,18 @@ function App() {
         onCountrySelect={handleCountrySelect}
       />
 
-      <LeftPanel
-        populationData={populationData}
-        populationLoading={populationLoading}
-        populationError={populationError}
-        selectedCountry={selectedCountry}
+      <AnalyticsErrorBoundary
+        resetKey={selectedCountry}
         onClose={() => setSelectedCountry(null)}
-      />
+      >
+        <LeftPanel
+          populationData={populationData}
+          populationLoading={populationLoading}
+          populationError={populationError}
+          selectedCountry={selectedCountry}
+          onClose={() => setSelectedCountry(null)}
+        />
+      </AnalyticsErrorBoundary>
     </div>
   );
 }

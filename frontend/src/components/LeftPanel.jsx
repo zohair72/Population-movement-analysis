@@ -20,22 +20,34 @@ const LeftPanel = ({
   selectedCountry,
   onClose = () => {}
 }) => {
-  const [isMobileViewport, setIsMobileViewport] = useState(() => (
-    typeof window !== 'undefined' ? window.innerWidth < 640 : false
-  ));
+  const [isCompactAnalytics, setIsCompactAnalytics] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+
+    const coarsePointer = typeof window.matchMedia === 'function'
+      ? window.matchMedia('(pointer: coarse)').matches
+      : false;
+    const appleMobile = /iPhone|iPad|iPod/i.test(window.navigator.userAgent);
+    return window.innerWidth < 768 || coarsePointer || appleMobile;
+  });
 
   useEffect(() => {
     if (typeof window === 'undefined') {
       return undefined;
     }
 
-    const handleResize = () => {
-      setIsMobileViewport(window.innerWidth < 640);
+    const updateCompactMode = () => {
+      const coarsePointer = typeof window.matchMedia === 'function'
+        ? window.matchMedia('(pointer: coarse)').matches
+        : false;
+      const appleMobile = /iPhone|iPad|iPod/i.test(window.navigator.userAgent);
+      setIsCompactAnalytics(window.innerWidth < 768 || coarsePointer || appleMobile);
     };
 
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    updateCompactMode();
+    window.addEventListener('resize', updateCompactMode);
+    return () => window.removeEventListener('resize', updateCompactMode);
   }, []);
 
   const populationMap = useMemo(() => {
@@ -187,7 +199,7 @@ const LeftPanel = ({
           <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300/80">
             Historical Growth
           </div>
-          {isMobileViewport ? (
+          {isCompactAnalytics ? (
             <div className="space-y-3 rounded-2xl border border-white/6 bg-black/10 p-3">
               <div className="flex items-end justify-between">
                 <div>
